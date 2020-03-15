@@ -14,6 +14,8 @@ export function resetCascaderOrgin(orgin: any) {
     temp[count] = lev1;
 
     //将已经排序的数据转换成级联节点格式
+    //注意：由于三层嵌套都是在操作引用类型变量，所以
+    //数组使用.slice(0)的技巧，生成副本再赋值
     //参考:https://element.eleme.cn/#/zh-CN/component/cascader
     orgin.data.data.forEach((item: any, index: number, array: any) => {
         if (index > 0) {
