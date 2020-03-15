@@ -86,7 +86,6 @@ export default class Items extends Vue {
     sort: { kbnId: 1, ken1: 1, ken2: 1 }
   };
   async fetch() {
-    console.log(this.pagesize);
     const res = await this.$http.get("/category", {
       params: {
         query: this.query

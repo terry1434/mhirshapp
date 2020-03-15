@@ -4,8 +4,8 @@
     <div class="menubar">
       <div class="ctrl">
         <el-row>
-          <el-button type="primary" @click="handelSave" :disabled="disableSave">Save</el-button>
-          <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">Submit</el-button>
+          <el-button type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
+          <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
         </el-row>
       </div>
       <div class="progress">
@@ -18,8 +18,8 @@
     </div>
     <!-- 画面主区域 -->
     <div class="customInput">
-      <el-table :data="tabelData" stripe style="width: 100%" max-height="585">
-        <el-table-column fixed label width="150" align="center">
+      <el-table :data="tabelData" stripe style="width: 100%" height>
+        <el-table-column label width="150" align="center">
           <template slot-scope="scope">
             <el-popover trigger="hover" placement="top">
               <p>业务ID: {{ scope.row.kbnId }}</p>
@@ -35,18 +35,24 @@
         <el-table-column prop="oldRate" label="变更前" width="220"></el-table-column>
         <el-table-column label="变更后" width="180">
           <template slot-scope="scope">
-            <el-input v-model="scope.row.rate"></el-input>
+            <el-input type="text" v-model="scope.row.rate" :disabled="isSubmit"></el-input>
           </template>
         </el-table-column>
         <el-table-column label="幅度" width="180">
           <template slot-scope="scope">
-            <el-input v-model="scope.row.spread"></el-input>
+            <el-input type="text" v-model="scope.row.spread" :disabled="isSubmit"></el-input>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label width="120">
+        <el-table-column label width="120">
           <template slot-scope="scope">
             <el-popconfirm title="确定删除吗？" @onConfirm="deleteRow(scope.$index)">
-              <el-button slot="reference" size="mini" type="danger" icon="el-icon-delete"></el-button>
+              <el-button
+                slot="reference"
+                size="mini"
+                type="danger"
+                icon="el-icon-delete"
+                :disabled="isSubmit"
+              ></el-button>
             </el-popconfirm>
           </template>
         </el-table-column>
@@ -65,7 +71,7 @@
           clearable
         ></el-cascader>
         <el-button size="mini" type="primary" @click="addRow">确定</el-button>
-        <el-button type="primary" icon="el-icon-plus" circle slot="reference"></el-button>
+        <el-button type="primary" icon="el-icon-plus" circle slot="reference" :disabled="isSubmit"></el-button>
       </el-popover>
     </div>
   </div>
@@ -85,6 +91,7 @@ export default class chargeInput extends Vue {
   activeStep: number = 0;
   itemsNode: any = [];
   selectedItemNode: Array<string> = [];
+  isSubmit: boolean = false;
   tabelData = [
     {
       kbnId: "123456789",
@@ -146,9 +153,11 @@ export default class chargeInput extends Vue {
     this.step3 = "待审批";
     this.activeStep = 2;
     this.$message.success("提交成功");
+    this.isSubmit = true;
   }
   deleteRow(index) {
     this.tabelData.splice(index, 1);
+    this.$message.success("删除成功");
   }
   addRow() {
     if (this.selectedItemNode.length != 3) {
@@ -175,7 +184,6 @@ export default class chargeInput extends Vue {
   display: flex;
   flex-direction: column;
   min-width: 400px;
-  height: 100%;
   width: 100%;
   justify-content: center;
   align-items: center;

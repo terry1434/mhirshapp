@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-aside width="200px">
-      <el-menu mode="vertical" style="height:100vh" :default-active="$route.path" router>
+      <el-menu mode="vertical" style="height:100%" :default-active="$route.path" router>
         <el-submenu v-for="(item, index) in menus.items" :index="`index + 1`" :key="index">
           <template slot="title">
             <h3>{{item.title}}</h3>
