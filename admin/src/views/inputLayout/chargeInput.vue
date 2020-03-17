@@ -2,8 +2,13 @@
   <div class="container">
     <h3>手续费输入画面</h3>
     <div class="menubar">
-      <div class="ctrl">
+      <div class="ctrlbar">
         <el-row>
+          <el-button
+            type="primary"
+            @click="addItemDialogVisible = true"
+            :disabled="disableSubmit"
+          >追加</el-button>
           <el-button type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
           <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
         </el-row>
@@ -18,7 +23,7 @@
     </div>
     <!-- 画面主区域 -->
     <div class="customInput">
-      <el-table :data="tabelData" stripe style="width: 100%" height>
+      <el-table :data="tabelData" :highlight-current-row="true" stripe style="width: 100%">
         <el-table-column label width="150" align="center">
           <template slot-scope="scope">
             <el-popover trigger="hover" placement="top">
@@ -56,31 +61,49 @@
             </el-popconfirm>
           </template>
         </el-table-column>
+        <el-table-column v-if="false">
+          <template slot-scope="scope">
+            <el-input type="text" v-model="scope.row.node"></el-input>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
-
-    <div class="addItem">
-      <el-popover placement="right" width="260" trigger="click">
-        <el-cascader
-          width="300"
-          v-model="selectedItemNode"
-          size="mini"
-          style="margin-right:10px"
-          :options="itemsNode"
-          :props="{ checkStrictly: true }"
-          clearable
-        ></el-cascader>
-        <el-button size="mini" type="primary" @click="addRow">确定</el-button>
-        <el-button type="primary" icon="el-icon-plus" circle slot="reference" :disabled="isSubmit"></el-button>
-      </el-popover>
-    </div>
+    <el-dialog
+      title="添加手续费科目"
+      :visible.sync="addItemDialogVisible"
+      :destroy-on-close="true"
+      width="800px"
+    >
+      <!-- 为了每次打开pop刷新被添加进画面的数据状态，使用key每次刷新级联菜单 -->
+      <el-cascader-panel
+        ref="treeItems"
+        :options="itemsNode"
+        :props="{ multiple: true }"
+        v-model="selectedItemNode"
+        :key="timestamp"
+        style="width:100%;"
+      >
+        <template slot-scope="{ node, data }">
+          <span>{{ data.label }}</span>
+          <span v-if="!node.isLeaf">({{ data.children.length }})</span>
+        </template>
+      </el-cascader-panel>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addItemDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addRows">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 
 <script lang='ts'>
 import { Vue, Component } from "vue-property-decorator";
-import { resetCascaderOrgin } from "../../common/common";
+import {
+  resetCascaderOrgin,
+  disableCascaderOrginTree,
+  clearDisableCascader
+} from "../../common/common";
 @Component({})
 export default class chargeInput extends Vue {
   step1: string = "新规";
@@ -92,38 +115,9 @@ export default class chargeInput extends Vue {
   itemsNode: any = [];
   selectedItemNode: Array<string> = [];
   isSubmit: boolean = false;
-  tabelData = [
-    {
-      kbnId: "123456789",
-      kbnName: "测试业务ABCDEF",
-      ken1: "测试科目1",
-      ken2: "测试项1",
-      baseRate: "1.5000",
-      oldRate: "1.6500",
-      rate: "",
-      spread: ""
-    },
-    {
-      kbnId: "123456789",
-      kbnName: "测试业务ABCDEF",
-      ken1: "测试科目2",
-      ken2: "测试项2",
-      baseRate: "1.1200",
-      oldRate: "1.2500",
-      rate: "",
-      spread: ""
-    },
-    {
-      kbnId: "123456789",
-      kbnName: "测试业务ABCDEF",
-      ken1: "测试科目3",
-      ken2: "测试项3",
-      baseRate: "1.5500",
-      oldRate: "1.8500",
-      rate: "",
-      spread: ""
-    }
-  ];
+  timestamp: number = new Date().getTime();
+  addItemDialogVisible: boolean = false;
+  tabelData = [];
 
   created() {
     this.fetch();
@@ -156,25 +150,31 @@ export default class chargeInput extends Vue {
     this.isSubmit = true;
   }
   deleteRow(index) {
-    this.tabelData.splice(index, 1);
+    const { kbnName, ken1, ken2 } = this.tabelData.splice(index, 1)[0];
+    clearDisableCascader([kbnName, ken1, ken2], this.itemsNode);
     this.$message.success("删除成功");
+    this.timestamp = new Date().getTime();
   }
-  addRow() {
-    if (this.selectedItemNode.length != 3) {
-      this.$message.error("请选择最后一个节点的科目");
-      return;
+  addRows() {
+    const selectList = this.$refs.treeItems.getCheckedNodes();
+    if (this.selectedItemNode.length > 0) {
+      this.selectedItemNode.forEach(item => {
+        this.tabelData.push({
+          kbnId: "",
+          kbnName: item[0],
+          ken1: item[1],
+          ken2: item[2],
+          baseRate: "1.0000",
+          oldRate: "1.2000",
+          rate: "",
+          spread: ""
+        });
+      });
+      this.selectedItemNode = [];
+      disableCascaderOrginTree(selectList, true);
     }
-
-    this.tabelData.push({
-      kbnId: "123456789",
-      kbnName: this.selectedItemNode[0],
-      ken1: this.selectedItemNode[1],
-      ken2: this.selectedItemNode[2],
-      baseRate: "1.0000",
-      oldRate: "1.2000",
-      rate: "",
-      spread: ""
-    });
+    this.addItemDialogVisible = false;
+    // this.$refs.treeItems.clearCheckedNodes();
   }
 }
 </script>
@@ -206,7 +206,7 @@ ul > li {
   justify-content: flex-start;
   align-items: center;
 }
-.ctrl {
+.ctrlbar {
   min-width: 180px;
 }
 .progress {
@@ -220,8 +220,8 @@ ul > li {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: center;
+  align-items: flex-start;
   margin-top: 10px;
   margin-right: 20px;
   padding-top: 5px;
@@ -243,5 +243,26 @@ ul > li {
   bottom: 40px;
   right: 40px;
   z-index: 9999;
+}
+.addContainer {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 15px;
+}
+.name-wrapper:hover {
+  cursor: pointer;
+}
+.updown {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.updown > div {
+  width: 150px;
 }
 </style>
