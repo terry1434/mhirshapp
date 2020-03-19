@@ -8,7 +8,7 @@
           <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
         </el-row>
       </div>
-      
+
       <div class="progress">
         <el-steps :space="200" :active="activeStep" finish-status="success" align-center>
           <el-step :title="step1"></el-step>
@@ -20,15 +20,13 @@
     <!-- 画面主区域 -->
     <div class="customInput">
       <el-cascader-panel :options="itemsNode" :props="{ multiple: true }"></el-cascader-panel>
-      <ul>
-        <transition-group>
-          <li
-            v-for="(item,index) in tabelData"
-            :key="index"
-            @click="del(index)"
-          >{{ item.kbnId }} --- {{ item.kbnName }}</li>
-        </transition-group>
-      </ul>
+      <transition-group tag="ul" style="position:relative">
+        <li style="position:relative;"
+          v-for="(item,index) in tabelData"
+          :key="index"
+          @click="del(index)"
+        >{{ item.kbnId }} --- {{ item.kbnName }}</li>
+      </transition-group>
     </div>
   </div>
 </template>
@@ -51,7 +49,7 @@ export default class chargeInput extends Vue {
   isSubmit: boolean = false;
   tabelData = [
     {
-      kbnId: "123456789",
+      kbnId: "测试科目1",
       kbnName: "测试业务ABCDEF",
       ken1: "测试科目1",
       ken2: "测试项1",
@@ -61,7 +59,7 @@ export default class chargeInput extends Vue {
       spread: ""
     },
     {
-      kbnId: "123456789",
+      kbnId: "测试科目2",
       kbnName: "测试业务ABCDEF",
       ken1: "测试科目2",
       ken2: "测试项2",
@@ -71,7 +69,7 @@ export default class chargeInput extends Vue {
       spread: ""
     },
     {
-      kbnId: "123456789",
+      kbnId: "测试科目3",
       kbnName: "测试业务ABCDEF",
       ken1: "测试科目3",
       ken2: "测试项3",
@@ -151,7 +149,7 @@ ul {
   list-style: none;
 }
 ul > li {
-  float: left;
+
 }
 .menubar {
   width: 100%;
@@ -199,7 +197,7 @@ ul > li {
   z-index: 9999;
 }
 
-.v-enter{
+.v-enter {
   opacity: 0;
   transform: translateX(-80px);
 }

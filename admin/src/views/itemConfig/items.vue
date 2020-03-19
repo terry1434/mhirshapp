@@ -28,17 +28,27 @@
         :label="field.label"
         :width="field.width"
       ></el-table-column>
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            style="margin-right:10px"
-            @click="$router.push(`itemEdit/${scope.row._id}`)"
-            icon="el-icon-edit"
-          ></el-button>
-          <el-popconfirm title="确定删除吗？" @onConfirm="handleDelete(scope.$index, scope.row)">
-            <el-button slot="reference" size="mini" type="danger" icon="el-icon-delete"></el-button>
-          </el-popconfirm>
+          <el-button-group>
+            <el-button
+              type="primary"
+              size="mini"
+              @click="$router.push(`itemEdit/${scope.row._id}`)"
+              icon="el-icon-edit"
+              title="更新"
+            ></el-button>
+            <el-button
+              type="success"
+              size="mini"
+              @click="$router.push(`itemCreate/${scope.row._id}`)"
+              icon="el-icon-plus"
+              title="复写"
+            ></el-button>
+            <el-popconfirm title="确定删除吗？" @onConfirm="handleDelete(scope.$index, scope.row)">
+              <el-button slot="reference" size="mini" type="danger" icon="el-icon-delete" title="删除"></el-button>
+            </el-popconfirm>
+          </el-button-group>
         </template>
       </el-table-column>
     </el-table>
@@ -63,7 +73,7 @@ import { resetCascaderOrgin } from "../../common/common";
 @Component({})
 export default class Items extends Vue {
   data: any = {};
-  searchCondition: Object = {};
+  searchCondition: any = {};
   loading: boolean = true;
   fields: any = {
     kbnId: { label: "业务ID" },

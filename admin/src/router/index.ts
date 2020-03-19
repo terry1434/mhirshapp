@@ -13,8 +13,9 @@ const routes: RouteConfig[] = [
     name: 'Demo',
     component: Demo,
     children: [
-      { component: items, path: "itemConfig/items" },
+      { component: items, path: "itemConfig/items", meta: { keepAlive: true } },
       { component: itemEdit, path: "itemConfig/itemCreate" },
+      { component: itemEdit, path: "itemConfig/itemCreate/:id", props: true },
       { component: itemEdit, path: "itemConfig/itemEdit/:id", props: true },//props表示将:id作为组件的prop
       { component: chargeInput, path: "inputLayout/chargeInput" }
     ],

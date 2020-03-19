@@ -5,16 +5,17 @@
       <div class="ctrlbar">
         <el-row>
           <el-button
+            size="small"
             type="primary"
             @click="addItemDialogVisible = true"
             :disabled="disableSubmit"
           >追加</el-button>
-          <el-button type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
-          <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
+          <el-button size="small" type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
+          <el-button size="small" type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
         </el-row>
       </div>
       <div class="progress">
-        <el-steps :space="200" :active="activeStep" finish-status="success" align-center>
+        <el-steps :space="300" :active="activeStep" finish-status="success" align-center>
           <el-step :title="step1"></el-step>
           <el-step :title="step2"></el-step>
           <el-step :title="step3"></el-step>
@@ -23,50 +24,59 @@
     </div>
     <!-- 画面主区域 -->
     <div class="customInput">
-      <el-table :data="tabelData" :highlight-current-row="true" stripe style="width: 100%">
-        <el-table-column label width="150" align="center">
-          <template slot-scope="scope">
-            <el-popover trigger="hover" placement="top">
-              <p>业务ID: {{ scope.row.kbnId }}</p>
-              <p>业务名: {{ scope.row.kbnName }}</p>
-              <p>业务分类A: {{ scope.row.ken1 }}</p>
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium">{{ scope.row.ken2 }}</el-tag>
-              </div>
-            </el-popover>
-          </template>
-        </el-table-column>
-        <el-table-column prop="baseRate" label="基准" width="220"></el-table-column>
-        <el-table-column prop="oldRate" label="变更前" width="220"></el-table-column>
-        <el-table-column label="变更后" width="180">
-          <template slot-scope="scope">
-            <el-input type="text" v-model="scope.row.rate" :disabled="isSubmit"></el-input>
-          </template>
-        </el-table-column>
-        <el-table-column label="幅度" width="180">
-          <template slot-scope="scope">
-            <el-input type="text" v-model="scope.row.spread" :disabled="isSubmit"></el-input>
-          </template>
-        </el-table-column>
-        <el-table-column label width="120">
-          <template slot-scope="scope">
-            <el-popconfirm title="确定删除吗？" @onConfirm="deleteRow(scope.$index)">
-              <el-button
-                slot="reference"
-                size="mini"
-                type="danger"
-                icon="el-icon-delete"
-                :disabled="isSubmit"
-              ></el-button>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="false">
-          <template slot-scope="scope">
-            <el-input type="text" v-model="scope.row.node"></el-input>
-          </template>
-        </el-table-column>
-      </el-table>
+      <ul class="table">
+        <li>科目</li>
+        <li>基准</li>
+        <li>变更前</li>
+        <li>变更后</li>
+        <li>幅度</li>
+        <li>操作</li>
+      </ul>
+      <ul style="width:100%;padding:0;margin:0;overflow:hidden">
+        <!-- 动画默认的【v-前缀】会替换成【name】属性 -->
+        <transition-group name="v-table">
+          <li
+            v-for="(item,index) in tabelData"
+            :key="item.id"
+            class="table table_content"
+            :class="{evenRow:index%2==1,oddRow:index%2==0}"
+          >
+            <div>
+              <el-popover trigger="click" placement="top">
+                <p>业务ID: {{ item.id }}</p>
+                <p>业务名: {{ item.kbnName }}</p>
+                <p>业务分类A: {{ item.ken1 }}</p>
+                <div slot="reference" class="name-wrapper">
+                  <el-tag size="medium">{{ item.ken2 }}</el-tag>
+                </div>
+              </el-popover>
+            </div>
+            <div>
+              <span>{{item.baseRate}}</span>
+            </div>
+            <div>
+              <span>{{item.oldRate}}</span>
+            </div>
+            <div>
+              <el-input type="text" v-model="item.rate" :disabled="isSubmit"></el-input>
+            </div>
+            <div>
+              <el-input type="text" v-model="item.spread" :disabled="isSubmit"></el-input>
+            </div>
+            <div class="delbtn">
+              <el-popconfirm title="确定删除吗？" @onConfirm="deleteRow(index)">
+                <el-button
+                  slot="reference"
+                  size="mini"
+                  type="danger"
+                  icon="el-icon-delete"
+                  :disabled="isSubmit"
+                ></el-button>
+              </el-popconfirm>
+            </div>
+          </li>
+        </transition-group>
+      </ul>
     </div>
     <el-dialog
       title="添加手续费科目"
@@ -106,6 +116,7 @@ import {
 } from "../../common/common";
 @Component({})
 export default class chargeInput extends Vue {
+  rowId: number = 0;
   step1: string = "新规";
   step2: string = "未提交";
   step3: string = "未审批";
@@ -117,7 +128,7 @@ export default class chargeInput extends Vue {
   isSubmit: boolean = false;
   timestamp: number = new Date().getTime();
   addItemDialogVisible: boolean = false;
-  tabelData = [];
+  tabelData: any = [];
 
   created() {
     this.fetch();
@@ -159,22 +170,25 @@ export default class chargeInput extends Vue {
     const selectList = this.$refs.treeItems.getCheckedNodes();
     if (this.selectedItemNode.length > 0) {
       this.selectedItemNode.forEach(item => {
-        this.tabelData.push({
+        this.tabelData.unshift({
+          id: this.rowId++,
           kbnId: "",
           kbnName: item[0],
           ken1: item[1],
           ken2: item[2],
           baseRate: "1.0000",
           oldRate: "1.2000",
-          rate: "",
-          spread: ""
+          rate: "1.3500",
+          spread: "1.2150",
+          isDelete: false
         });
       });
       this.selectedItemNode = [];
       disableCascaderOrginTree(selectList, true);
+      console.log(selectList);
     }
     this.addItemDialogVisible = false;
-    // this.$refs.treeItems.clearCheckedNodes();
+    this.$refs.treeItems.clearCheckedNodes();
   }
 }
 </script>
@@ -189,6 +203,7 @@ export default class chargeInput extends Vue {
   align-items: center;
   margin: 10px;
   position: relative;
+  overflow: hidden;
 }
 .container > h3 {
   align-self: flex-start;
@@ -196,9 +211,7 @@ export default class chargeInput extends Vue {
 ul {
   list-style: none;
 }
-ul > li {
-  float: left;
-}
+
 .menubar {
   width: 100%;
   height: 80px;
@@ -207,7 +220,7 @@ ul > li {
   align-items: center;
 }
 .ctrlbar {
-  min-width: 180px;
+  min-width: 280px;
 }
 .progress {
   min-width: 240px;
@@ -225,6 +238,8 @@ ul > li {
   margin-top: 10px;
   margin-right: 20px;
   padding-top: 5px;
+  padding-left: 20px;
+  overflow-x: auto;
 }
 .customInput ul.customInputLine {
   width: 100%;
@@ -264,5 +279,94 @@ ul > li {
 }
 .updown > div {
   width: 150px;
+}
+
+.table {
+  width: 100%;
+  /* min-width: 900px; */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 45px;
+  line-height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid #dfe6e9;
+  pointer-events: none;
+}
+.table_content {
+  height: 55px;
+  line-height: 55px;
+  pointer-events: all;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.table li {
+  font-size: 14px;
+  font-weight: 600;
+  color: #909399;
+  text-align: center;
+}
+.table_content > div:nth-child(1),
+.table li:nth-child(1) {
+  width: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.table_content > div:nth-child(2),
+.table_content > div:nth-child(3),
+.table_content > div:nth-child(4),
+.table_content > div:nth-child(5),
+.table_content > :nth-child(6),
+.table li:nth-child(2),
+.table li:nth-child(3),
+.table li:nth-child(4),
+.table li:nth-child(5),
+.table li:nth-child(6) {
+  width: 180px;
+  text-align: center;
+  margin: 0 auto;
+}
+.oddRow {
+  background-color: rgba(244, 244, 244, 0.5);
+}
+.oddRow:hover {
+  background-color: rgba(233, 233, 233, 1);
+}
+.evenRow {
+  background-color: rgba(15, 188, 249, 0.1);
+}
+.evenRow:hover {
+  background-color: rgb(148, 218, 243, 0.5);
+}
+
+.table_content .delbtn {
+  opacity: 0.8;
+  transition: all 0.6s ease;
+}
+.table_content:hover .delbtn {
+  opacity: 1;
+}
+
+.v-table-enter,
+.v-table-leave-to {
+  opacity: 0;
+  transform: translateX(80px);
+}
+.v-table-enter-active,
+.v-table-leave-active {
+  transition: all 0.6s ease;
+}
+.v-table-move {
+  transition: all 0.6s ease;
+}
+
+.v-table-leave-active {
+  position: absolute;
 }
 </style>

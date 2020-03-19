@@ -151,8 +151,8 @@ export function disableCascaderOrginTree(treeNode: any, disflg: boolean) {
 }
 
 //画面中选择删除项目后，还原Cascader的项目可选状态
-//delItem:['业务1','业务2','业务3']
-//itemsNode:[{value:xxx,label:xxx,children:xxx},{},{},...]
+//delItem:['业务1','业务2','业务3'] 画面中选择的删除行
+//itemsNode:[{value:xxx,label:xxx,children:xxx},{},{},...] 级联菜单中的数据
 export function clearDisableCascader(delItem: any, itemsNode: any) {
     itemsNode.forEach((item: any) => {
         if (item.children) {
@@ -162,7 +162,7 @@ export function clearDisableCascader(delItem: any, itemsNode: any) {
                 delItem.shift();
                 clearDisableCascader(delItem, item.children)
             }
-        } else {
+        } else if (item.value == delItem[0]) {
             item.disabled = false;
         }
     })

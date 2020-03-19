@@ -3,7 +3,7 @@
     <h3>项目{{isCreate?"追加":"更新"}}</h3>
     <!-- Form 组件提供了表单验证的功能，只需要通过 rules 属性传入约定的验证规则 -->
     <!-- 并将 Form-Item 的 prop 属性设置为需校验的字段名即可。校验规则参见 async-validator  -->
-    <el-form ref="form" :model="form" label-width="80px" :rules="rules" >
+    <el-form ref="form" :model="form" label-width="80px" :rules="rules">
       <el-form-item label="业务ID" prop="kbnId">
         <el-input v-model="form.kbnId"></el-input>
       </el-form-item>
@@ -26,7 +26,7 @@
         <el-input v-model="form.ctlType3"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onSubmit('form')">立即{{isCreate?"创建":"更新"}}</el-button>
+        <el-button type="primary" @click="onSubmit('form')">{{isCreate?"创建":"更新"}}</el-button>
         <el-button @click="goback">返回</el-button>
       </el-form-item>
     </el-form>
@@ -50,29 +50,39 @@ export default class itemEdit extends Vue {
 
   //计算属性的写法
   get isCreate() {
-    return !this.id;
+    return this.$route.path.match(/itemCreate/);
   }
 
   created() {
-    !this.isCreate && this.fetch();
+    this.id && this.fetch();
   }
   async fetch() {
     const res = await this.$http.get(`category/${this.id}`);
     this.form = res.data;
   }
-  async onSubmit(formName) {
-    this.$refs[formName].validate(async valid => {
-      if (valid) {
-        const url = this.isCreate ? `category` : `category/${this.id}`;
-        const method = this.isCreate ? `post` : `put`;
-        await this.$http[method](url, this.form);
-        this.$message.success("创建成功");
-        this.$router.go(-1);
-      } else {
-        console.log("error submit!!");
-        return false;
+  async onSubmit(formName: string) {
+    (this.$refs[formName] as HTMLFormElement).validate(
+      async (valid: boolean) => {
+        if (valid) {
+          const url = this.isCreate ? `category` : `category/${this.id}`;
+          const method = this.isCreate ? `post` : `put`;
+          try {
+            const res = await this.$http[method](url, this.form);
+            if (res.status == 200) {
+              this.$message.success(`${this.isCreate ? "创建" : "更新"}成功`);
+              this.$router.go(-1);
+            } else {
+              this.$message.error(res.statusText);
+            }
+          } catch (e) {
+            this.$message.error("创建失败");
+          }
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
       }
-    });
+    );
   }
 
   goback() {
