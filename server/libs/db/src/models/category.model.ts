@@ -19,13 +19,16 @@ export class Category {
     @ApiProperty({ description: '科目2', example: 'B科目' })
     @prop()
     ken2: string
-    @ApiProperty({ description: '项目类型1', example: 'textbox' })
+    @ApiProperty({ description: '控件类型', example: 'textbox' })
     @prop()
-    ctlType1: string
-    @ApiProperty({ description: '项目类型2', example: 'textbox' })
+    ctlType: string
+    @ApiProperty({ description: '控件属性1', example: '[选项1,选项2,...]' })
     @prop()
-    ctlType2: string
-    @ApiProperty({ description: '项目类型3', example: 'textbox' })
+    ctlAttr1: Array<any>
+    @ApiProperty({ description: '控件属性2', example: 'textbox' })
     @prop()
-    ctlType3: string
+    ctlAttr2: string
+    @ApiProperty({ description: '输入格式', example: 'yyyy/MM/dd' })
+    @prop()
+    ctlFormat: string
 }

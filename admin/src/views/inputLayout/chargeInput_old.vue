@@ -79,7 +79,7 @@ export default class chargeInput extends Vue {
       spread: ""
     }
   ];
-  del(index) {
+  del(index:number) {
     this.tabelData.splice(index, 1);
   }
   created() {

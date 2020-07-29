@@ -145,7 +145,7 @@ export default class chargeInput extends Vue {
     this.$message.success("提交成功");
     this.isSubmit = true;
   }
-  deleteRow(index) {
+  deleteRow(index:number) {
     this.tabelData.splice(index, 1);
     this.$message.success("删除成功");
   }

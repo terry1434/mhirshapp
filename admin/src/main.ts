@@ -10,6 +10,11 @@ Vue.prototype.$http = axios.create({
   baseURL: "http://localhost:3000/"
 })
 
+//全局过滤器
+Vue.filter('lenOver', function (dataStr: string) {
+  return "123123";
+})
+
 new Vue({
   router,
   render: h => h(App)

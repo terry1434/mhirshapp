@@ -1,3 +1,5 @@
+
+
 //生成el-cascader-panel需要的数据格式
 //参考:https://element.eleme.cn/#/zh-CN/component/cascader
 export function resetCascaderOrgin(orgin: any) {
@@ -45,6 +47,68 @@ export function resetCascaderOrgin(orgin: any) {
                     value: item.kbnName,
                     label: item.kbnName,
                     children: lev2.slice(0)
+                };
+                temp[++count] = lev1;
+            }
+        }
+    });
+    temp.length = count + 1;
+    return Array.from(temp);
+}
+
+export function resetCascaderOrginById(orgin: any): Array<any> {
+    let temp: any = {};
+    let count: number = 0;
+    let first = orgin.data.data[0];
+    let dtRow = 0;
+    let lev3 = [{ id: dtRow++, value: first.ken2, label: first.ken2, ctlType: first.ctlType, level: 3 }];
+    let lev2 = [
+        { id: dtRow++, value: first.ken1, label: first.ken1, children: lev3.slice(0), level: 2 }
+    ];
+    let lev1 = {
+        id: dtRow++,
+        value: first.kbnName,
+        label: first.kbnName,
+        children: lev2.slice(0),
+        level: 1
+    };
+    temp[count] = lev1;
+
+    //将已经排序的数据转换成级联节点格式
+    //注意：由于三层嵌套都是在操作引用类型变量，所以
+    //数组使用.slice(0)的技巧，生成副本再赋值
+    //参考:https://element.eleme.cn/#/zh-CN/component/cascader
+    orgin.data.data.forEach((item: any, index: number, array: any) => {
+        if (index > 0) {
+            if (
+                array[index - 1].kbnName == item.kbnName &&
+                array[index - 1].ken1 == item.ken1
+            ) {
+                lev3.push({ id: dtRow++, value: item.ken2, label: item.ken2, ctlType: item.ctlType, level: 3 });
+                lev2 = temp[count].children;
+                lev2[lev2.length - 1].children = lev3.slice(0);
+                temp[count].children = lev2.slice(0);
+            } else if (array[index - 1].kbnName == item.kbnName) {
+                lev3 = [{ id: dtRow++, value: item.ken2, label: item.ken2, ctlType: item.ctlType, level: 3 }];
+                lev2.push({
+                    id: dtRow++,
+                    value: item.ken1,
+                    label: item.ken1,
+                    children: lev3.slice(0),
+                    level: 2
+                });
+                temp[count].children = lev2.slice(0);
+            } else {
+                lev3 = [{ id: dtRow++, value: item.ken2, label: item.ken2, ctlType: item.ctlType, level: 3 }];
+                lev2 = [
+                    { id: dtRow++, value: item.ken1, label: item.ken1, children: lev3.slice(0), level: 2 }
+                ];
+                lev1 = {
+                    id: dtRow++,
+                    value: item.kbnName,
+                    label: item.kbnName,
+                    children: lev2.slice(0),
+                    level: 1
                 };
                 temp[++count] = lev1;
             }

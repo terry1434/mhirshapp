@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="main">
     <h3>维护项目一览</h3>
     <div style="margin-bottom:10px;">
       <el-cascader
         v-model="searchCondition"
         size="mini"
-        style="margin-right:10px"
+        style="margin-right:10px;"
         :options="options"
         :props="{ checkStrictly: true }"
         clearable
@@ -14,44 +14,58 @@
       <el-button size="mini" icon="el-icon-search" type @click="handleSearch()">搜索</el-button>
       <el-button size="mini" type="primary" @click="handleInsert()" icon="el-icon-plus">添加</el-button>
     </div>
-    <!-- <el-steps :active="1" simple>
-      <el-step title="信息录入" icon="el-icon-edit"></el-step>
-      <el-step title="提交" icon="el-icon-upload"></el-step>
-      <el-step title="开始回览" icon="el-icon-check"></el-step>
-    </el-steps>-->
-    <el-table :data="data.data" stripe style="width: 100%" max-height="585" v-loading="loading">
-      <el-table-column :prop="'_id'" v-if="false"></el-table-column>
-      <el-table-column
-        v-for="(field,name,index) in fields"
-        :prop="name"
-        :key="index"
-        :label="field.label"
-        :width="field.width"
-      ></el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
-        <template slot-scope="scope">
-          <el-button-group>
-            <el-button
-              type="primary"
-              size="mini"
-              @click="$router.push(`itemEdit/${scope.row._id}`)"
-              icon="el-icon-edit"
-              title="更新"
-            ></el-button>
-            <el-button
-              type="success"
-              size="mini"
-              @click="$router.push(`itemCreate/${scope.row._id}`)"
-              icon="el-icon-plus"
-              title="复写"
-            ></el-button>
-            <el-popconfirm title="确定删除吗？" @onConfirm="handleDelete(scope.$index, scope.row)">
-              <el-button slot="reference" size="mini" type="danger" icon="el-icon-delete" title="删除"></el-button>
-            </el-popconfirm>
-          </el-button-group>
-        </template>
-      </el-table-column>
-    </el-table>
+    <transition>
+      <el-table
+        :data="data.data"
+        stripe
+        border
+        style="width: 100%"
+        max-height="585"
+        v-loading="loading"
+        :highlight-current-row="true"
+      >
+        <el-table-column :prop="'_id'" v-if="false"></el-table-column>
+        <el-table-column
+          v-for="(field,name,index) in fields"
+          :prop="name"
+          :key="index"
+          :label="field.label"
+          :width="field.width"
+        ></el-table-column>
+        <el-table-column label="操作" width="180" fixed="right">
+          <template slot-scope="scope">
+            <el-button-group>
+              <el-tooltip class="item" effect="dark" content="更新" :open-delay="600" placement="top">
+                <el-button
+                  type="primary"
+                  size="mini"
+                  @click="$router.push(`itemEdit/${scope.row._id}`)"
+                  icon="el-icon-edit"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="复写" :open-delay="600" placement="top">
+                <el-button
+                  type="success"
+                  size="mini"
+                  @click="$router.push(`itemCreate/${scope.row._id}`)"
+                  icon="el-icon-plus"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="删除" :open-delay="600" placement="top">
+                <el-popconfirm title="确定删除吗？" @onConfirm="handleDelete(scope.$index, scope.row)">
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="danger"
+                    icon="el-icon-delete"
+                  ></el-button>
+                </el-popconfirm>
+              </el-tooltip>
+            </el-button-group>
+          </template>
+        </el-table-column>
+      </el-table>
+    </transition>
     <div style="display:flex;justify-content:flex-end;margin-top:5px;">
       <el-pagination
         @size-change="handleSizeChange"
@@ -80,9 +94,9 @@ export default class Items extends Vue {
     kbnName: { label: "大分类" },
     ken1: { label: "中分类" },
     ken2: { label: "小分类" },
-    ctlType1: { label: "控件类型1" },
-    ctlType2: { label: "控件类型2" },
-    ctlType3: { label: "控件类型3" }
+    ctlType: { label: "控件类型" },
+    ctlAttr1: { label: "控件属性1" },
+    ctlAttr2: { label: "控件属性2" }
   };
   datatotal: number = 0; //总件数
   currentPage: number = 0; //当前页
@@ -96,11 +110,18 @@ export default class Items extends Vue {
     sort: { kbnId: 1, ken1: 1, ken2: 1 }
   };
   async fetch() {
+    console.log(this.query);
     const res = await this.$http.get("/category", {
       params: {
         query: this.query
       }
     });
+    this.data = res.data;
+    this.loading = false;
+    this.datatotal = res.data.total;
+    this.currentPage = 0;
+    //整理级联选择器数据源
+    //元数据必须已根据kbnName,ken1,ken2排序
     const condition = await this.$http.get("/category", {
       params: {
         query: {
@@ -109,12 +130,6 @@ export default class Items extends Vue {
         }
       }
     });
-    this.data = res.data;
-    this.loading = false;
-    this.datatotal = res.data.total;
-    this.currentPage = res.data.pagesize;
-    //整理级联选择器数据源
-    //元数据必须已根据kbnName,ken1,ken2排序
     this.options = resetCascaderOrgin(condition);
   }
   created() {
@@ -135,7 +150,7 @@ export default class Items extends Vue {
     this.fetch();
   }
   handleCurrentChange(val: number) {
-    this.query.skip = (val - 1) * this.query.limit;
+    this.query.skip = (val - 1) * this.pagesize;
     this.fetch();
   }
   //级联选择器获取搜索条件
@@ -145,6 +160,7 @@ export default class Items extends Vue {
   //搜索事件
   handleSearch() {
     this.query.where = {};
+    this.query.skip = 0;
     this.searchCondition[0]
       ? (this.query.where.kbnName = this.searchCondition[0])
       : null;
@@ -160,4 +176,5 @@ export default class Items extends Vue {
 </script>
 
 <style scoped>
+
 </style>

@@ -4,14 +4,8 @@
     <div class="menubar">
       <div class="ctrlbar">
         <el-row>
-          <el-button
-            size="small"
-            type="primary"
-            @click="addItemDialogVisible = true"
-            :disabled="disableSubmit"
-          >追加</el-button>
-          <el-button size="small" type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
-          <el-button size="small" type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
+          <el-button type="primary" @click="handelSave" :disabled="disableSave">暂存</el-button>
+          <el-button type="primary" @click="handelSubmit" :disabled="disableSubmit">提交</el-button>
         </el-row>
       </div>
       <div class="progress">
@@ -24,93 +18,33 @@
     </div>
     <!-- 画面主区域 -->
     <div class="customInput">
-      <ul class="table">
-        <li>科目</li>
-        <li>基准</li>
-        <li>变更前</li>
-        <li>变更后</li>
-        <li>幅度</li>
-        <li>操作</li>
-      </ul>
-      <ul style="width:100%;padding:0;margin:0;overflow:hidden">
-        <!-- 动画默认的【v-前缀】会替换成【name】属性 -->
-        <transition-group name="v-table">
-          <li
-            v-for="(item,index) in tabelData"
-            :key="item.id"
-            class="table table_content"
-            :class="{evenRow:index%2==1,oddRow:index%2==0}"
-          >
-            <div>
-              <el-popover trigger="click" placement="top">
-                <p>业务ID: {{ item.id }}</p>
-                <p>业务名: {{ item.kbnName }}</p>
-                <p>业务分类A: {{ item.ken1 }}</p>
-                <div slot="reference" class="name-wrapper">
-                  <el-tag size="medium">{{ item.ken2 }}</el-tag>
-                </div>
-              </el-popover>
-            </div>
-            <div>
-              <span>{{item.baseRate}}</span>
-            </div>
-            <div>
-              <span>{{item.oldRate}}</span>
-            </div>
-            <div>
-              <el-input type="text" v-model="item.rate" :disabled="isSubmit"></el-input>
-            </div>
-            <div>
-              <el-input type="text" v-model="item.spread" :disabled="isSubmit"></el-input>
-            </div>
-            <div class="delbtn">
-              <el-popconfirm title="确定删除吗？" @onConfirm="deleteRow(index)">
-                <el-button
-                  slot="reference"
-                  size="mini"
-                  type="danger"
-                  icon="el-icon-delete"
-                  :disabled="isSubmit"
-                ></el-button>
-              </el-popconfirm>
-            </div>
-          </li>
-        </transition-group>
-      </ul>
-    </div>
-    <el-dialog
-      title="添加手续费科目"
-      :visible.sync="addItemDialogVisible"
-      :destroy-on-close="true"
-      width="800px"
-    >
-      <!-- 为了每次打开pop刷新被添加进画面的数据状态，使用key每次刷新级联菜单 -->
-      <el-cascader-panel
-        ref="treeItems"
-        :options="itemsNode"
-        :props="{ multiple: true }"
-        v-model="selectedItemNode"
-        :key="timestamp"
-        style="width:100%;"
+      <el-table
+        :data="itemsNode"
+        style="width: 100%;margin-bottom: 20px;"
+        row-key="id"
+        default-expand-all
+        :tree-props="{children: 'children'}"
       >
-        <template slot-scope="{ node, data }">
-          <span>{{ data.label }}</span>
-          <span v-if="!node.isLeaf">({{ data.children.length }})</span>
-        </template>
-      </el-cascader-panel>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="addItemDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addRows">确 定</el-button>
-      </div>
-    </el-dialog>
+        <el-table-column prop="value" label="类型" width="180"></el-table-column>
+        <el-table-column prop="baseRate" label="基准" width="180"></el-table-column>
+        <el-table-column prop="ctlType" label="变更前" width="180"></el-table-column>
+        <el-table-column prop="newRate" label="变更后" width="180">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.level==3" size="mini" placeholder="输入变更后费率" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="newRate" label="优惠"></el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
 
 <script lang='ts'>
 import { Vue, Component } from "vue-property-decorator";
+import {Tree} from 'element-ui';
 import {
-  resetCascaderOrgin,
+  resetCascaderOrginById,
   disableCascaderOrginTree,
   clearDisableCascader
 } from "../../common/common";
@@ -143,7 +77,7 @@ export default class chargeInput extends Vue {
         }
       }
     });
-    this.itemsNode = resetCascaderOrgin(data);
+    this.itemsNode = resetCascaderOrginById(data);
   }
   handelSave() {
     this.step1 = "已保存";
@@ -160,15 +94,15 @@ export default class chargeInput extends Vue {
     this.$message.success("提交成功");
     this.isSubmit = true;
   }
-  deleteRow(index: number) {
+  deleteRow(index:number) {
     const { kbnName, ken1, ken2 } = this.tabelData.splice(index, 1)[0];
     clearDisableCascader([kbnName, ken1, ken2], this.itemsNode);
     this.$message.success("删除成功");
     this.timestamp = new Date().getTime();
   }
   addRows() {
-    let selectList = this.$refs.treeItems.getCheckedNodes();
-
+    const ref = <Tree>this.$refs.tree;
+    const selectList = ref.getCheckedNodes();
     if (this.selectedItemNode.length > 0) {
       this.selectedItemNode.forEach(item => {
         this.tabelData.unshift({
@@ -189,7 +123,7 @@ export default class chargeInput extends Vue {
       console.log(selectList);
     }
     this.addItemDialogVisible = false;
-    // selectList.clearCheckedNodes();
+    ref.clearCheckedNodes();
   }
 }
 </script>
@@ -232,26 +166,13 @@ ul {
 .customInput {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
   margin-top: 10px;
   margin-right: 20px;
   padding-top: 5px;
   padding-left: 20px;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
-.customInput ul.customInputLine {
-  width: 100%;
-  height: 25px;
-  display: flex;
-  justify-content: space-around;
-}
-.customInput .custom_header {
-  height: 40px;
-  margin: 0;
-}
+
 .addItem {
   width: 40px;
   height: 40px;
@@ -355,20 +276,12 @@ ul {
   opacity: 1;
 }
 
-.v-table-enter,
-.v-table-leave-to {
-  opacity: 0;
-  transform: translateX(80px);
-}
-.v-table-enter-active,
-.v-table-leave-active {
-  transition: all 0.6s ease;
-}
-.v-table-move {
-  transition: all 0.6s ease;
-}
-
-.v-table-leave-active {
-  position: absolute;
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
 }
 </style>

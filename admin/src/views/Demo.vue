@@ -1,7 +1,15 @@
 <template>
   <el-container>
     <el-aside width="200px">
-      <el-menu mode="vertical" style="height:100%" :default-active="$route.path" router>
+      <el-menu
+        mode="vertical"
+        style="height:100vh;overflow:hidden;border-right:2px solid #e0e0e0;"
+        :default-active="$route.path"
+        router
+        background-color="#545c64"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+      >
         <el-submenu v-for="(item, index) in menus.items" :index="`index + 1`" :key="index">
           <template slot="title">
             <h3>{{item.title}}</h3>
@@ -17,10 +25,10 @@
     <el-container>
       <el-main>
         <div style="position:relative;overflow:hidden;">
-            <transition mode="out-in">
-              <!-- Main content -->
-              <router-view :key="$router.path"></router-view>
-            </transition>
+          <transition mode="out-in">
+            <!-- Main content -->
+            <router-view :key="$router.path"></router-view>
+          </transition>
         </div>
       </el-main>
     </el-container>

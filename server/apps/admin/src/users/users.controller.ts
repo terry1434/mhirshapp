@@ -12,3 +12,4 @@ import { ApiTags } from '@nestjs/swagger';
 export class UsersController {
     constructor(@InjectModel(User) private readonly model) { }
 }
+
